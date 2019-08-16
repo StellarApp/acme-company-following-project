@@ -15,7 +15,7 @@
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <head>
@@ -49,24 +49,36 @@
         return (await axios.get(`${API}/companies`)).data;
       };
 
-      const CompanyList = ({ companies }) => {
-        console.log(companies);
+      const fetchFollowingCo = async id => {
+        return (await axios.get(`${API}/users/${id}/followingCompanies`)).data;
+      };
+
+      const CompanyList = ({ companies, followingCompanies }) => {
+        // console.log(companies);
+        // const followingCompanyList = followingCompanies.map(co => co.companyId);
+        const companyList = companies.map(company => {
+          const following = followingCompanies.find(
+            followingCompany => followingCompany.companyId === company.id
+          );
+          return {
+            ...company,
+            following: following ? true : false,
+            rating: following ? following.rating : 0
+          };
+        });
         return (
           <ul>
-          {
-            companies.map(company => 
-              <li>
-                { company.name }
-                <select>
-                  {
-                    [1, 2, 3, 4, 5].map(rate =>
-                      <option value={rate}>{rate}</option>
-                    )
-                  }
+            {companyList.map(company => (
+              <li className={company.following ? "selected" : ""}>
+                {company.name}
+                <select value={company.rating}>
+                  <option value="0"> --- Select --- </option>
+                  {[1, 2, 3, 4, 5].map(rate => (
+                    <option value={rate}>{rate}</option>
+                  ))}
                 </select>
               </li>
-            )
-          }
+            ))}
           </ul>
         );
       };
@@ -87,7 +99,9 @@
           //why do we need async here???
           const user = await fetchUser();
           const companies = await fetchCompanies();
-          this.setState({ user, companies });
+          const followingCompanies = await fetchFollowingCo(user.id);
+          this.setState({ user, companies, followingCompanies });
+          console.log(this.state);
         }
 
         render() {
@@ -98,7 +112,10 @@
                 You ({user.fullName}) are following {followingCompanies.length}{" "}
                 companies
               </h3>
-              <CompanyList companies={companies} />
+              <CompanyList
+                companies={companies}
+                followingCompanies={followingCompanies}
+              />
             </div>
           );
         }
