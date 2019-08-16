@@ -15,7 +15,7 @@
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
-    <!-- <script src="https://unpkg.com/react-router-dom/umd/react-router-dom.min.js"></script> -->
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <head>
@@ -25,7 +25,6 @@
     <script type="text/babel">
       const { Component } = React;
       const { render } = ReactDOM;
-      //   const { HashRouter, Route, Link, Switch, Redirect } = ReactRouterDOM;
       const root = document.querySelector("#root");
 
       const API = "https://acme-users-api-rev.herokuapp.com/api";
@@ -46,6 +45,32 @@
         return user;
       };
 
+      const fetchCompanies = async () => {
+        return (await axios.get(`${API}/companies`)).data;
+      };
+
+      const CompanyList = ({ companies }) => {
+        console.log(companies);
+        return (
+          <ul>
+          {
+            companies.map(company => 
+              <li>
+                { company.name }
+                <select>
+                  {
+                    [1, 2, 3, 4, 5].map(rate =>
+                      <option value={rate}>{rate}</option>
+                    )
+                  }
+                </select>
+              </li>
+            )
+          }
+          </ul>
+        );
+      };
+
       class App extends Component {
         constructor() {
           super();
@@ -60,9 +85,9 @@
 
         async componentDidMount() {
           //why do we need async here???
-          //   console.log(await fetchUser());
           const user = await fetchUser();
-          this.setState({ user });
+          const companies = await fetchCompanies();
+          this.setState({ user, companies });
         }
 
         render() {
@@ -73,6 +98,7 @@
                 You ({user.fullName}) are following {followingCompanies.length}{" "}
                 companies
               </h3>
+              <CompanyList companies={companies} />
             </div>
           );
         }
