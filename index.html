@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@16/umd/react.production.min.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+    <!-- <script src="https://unpkg.com/react-router-dom/umd/react-router-dom.min.js"></script> -->
+  </head>
+  <body>
+    <head>
+      <h1>Acme Company Follower</h1>
+    </head>
+    <div id="root"></div>
+    <script type="text/babel">
+      const { Component } = React;
+      const { render } = ReactDOM;
+      //   const { HashRouter, Route, Link, Switch, Redirect } = ReactRouterDOM;
+      const root = document.querySelector("#root");
+
+      const API = "https://acme-users-api-rev.herokuapp.com/api";
+
+      const fetchUser = async () => {
+        const storage = window.localStorage;
+        const userId = storage.getItem("userId");
+        if (userId) {
+          try {
+            return (await axios.get(`${API}/users/detail/${userId}`)).data;
+          } catch (ex) {
+            storage.removeItem("userId");
+            return fetchUser();
+          }
+        }
+        const user = (await axios.get(`${API}/users/random`)).data;
+        storage.setItem("userId", user.id);
+        return user;
+      };
+
+      class App extends Component {
+        constructor() {
+          super();
+          this.state = {
+            user: {},
+            companies: [],
+            followingCompanies: []
+          };
+
+          //bind
+        }
+
+        async componentDidMount() {
+          //why do we need async here???
+          //   console.log(await fetchUser());
+          const user = await fetchUser();
+          this.setState({ user });
+        }
+
+        render() {
+          const { user, companies, followingCompanies } = this.state;
+          return (
+            <div>
+              <h3>
+                You ({user.fullName}) are following {followingCompanies.length}{" "}
+                companies
+              </h3>
+            </div>
+          );
+        }
+      }
+
+      render(<App />, root);
+    </script>
+  </body>
+</html>
